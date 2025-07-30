@@ -8,6 +8,8 @@ import { useUserStore } from '@/lib/store/userStore'
 import { DiagnosisResult } from '@/lib/types'
 import { calculateJobAptitudeResult } from '@/lib/diagnosis-logic/jobAptitude'
 import ShareButton from '@/components/diagnosis/ShareButton'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { JOB_TYPE_LABELS, BACKGROUND_GRADIENTS, COLORS } from '@/lib/constants'
 import { ArrowLeft, RefreshCw, Award } from 'lucide-react'
 
 export default function ResultsPage() {
@@ -16,48 +18,58 @@ export default function ResultsPage() {
   const resultId = params.id as string
   
   const { currentDiagnosis, currentDiagnosisId, answers, resetDiagnosis } = useDiagnosisStore()
-  const { addDiagnosis, userData } = useUserStore()
+  const { addDiagnosis, userData, loadUserData } = useUserStore()
   
   const [result, setResult] = useState<DiagnosisResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [saved, setSaved] = useState(false)
+  
+  // userDataを確実に読み込む
+  useEffect(() => {
+    loadUserData()
+  }, [loadUserData])
 
   useEffect(() => {
-    if (currentDiagnosis && answers.length > 0 && !saved) {
-      let calculatedResult: DiagnosisResult
-
-      if (currentDiagnosis === 'job-aptitude') {
-        calculatedResult = calculateJobAptitudeResult(answers)
-      } else {
-        // 他の診断タイプの場合のフォールバック
-        calculatedResult = {
-          type: 'unknown',
-          title: '診断結果',
-          description: '診断が完了しました。',
-          scores: {},
-          recommendations: []
-        }
-      }
+    const handleNewDiagnosis = () => {
+      const calculatedResult = currentDiagnosis === 'job-aptitude' 
+        ? calculateJobAptitudeResult(answers)
+        : { type: 'unknown', title: '診断結果', description: '診断が完了しました。', scores: {}, recommendations: [] }
 
       setResult(calculatedResult)
-      
-      // 診断結果を保存（一度だけ実行）
-      const diagnosis = {
+      addDiagnosis({
         id: currentDiagnosisId || resultId,
-        type: currentDiagnosis,
+        type: currentDiagnosis!,
         answers,
         result: calculatedResult,
         completedAt: new Date().toISOString()
-      }
-      
-      addDiagnosis(diagnosis)
+      })
       setSaved(true)
       setIsLoading(false)
-    } else if (!currentDiagnosis || answers.length === 0) {
-      // 診断データがない場合はホームにリダイレクト
+    }
+
+    const handleSavedDiagnosis = () => {
+      const savedDiagnosis = userData?.completedDiagnoses.find(d => d.id === resultId)
+      if (savedDiagnosis) {
+        setResult(savedDiagnosis.result)
+        setIsLoading(false)
+      } else {
+        router.push('/history')
+      }
+    }
+
+    // 新規診断の処理
+    if (currentDiagnosis && answers.length > 0 && !saved) {
+      handleNewDiagnosis()
+    } 
+    // 保存済み診断の表示
+    else if (resultId && userData && !currentDiagnosis) {
+      handleSavedDiagnosis()
+    }
+    // データ不足時のホームリダイレクト
+    else if (!currentDiagnosis && userData && !userData.completedDiagnoses.find(d => d.id === resultId) && !saved) {
       router.push('/')
     }
-  }, [currentDiagnosis, answers, resultId, saved])
+  }, [currentDiagnosis, answers, resultId, saved, userData, addDiagnosis, currentDiagnosisId, router])
 
 
   const handleRetry = () => {
@@ -71,17 +83,14 @@ export default function ResultsPage() {
 
   if (isLoading || !result) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">結果を計算しています...</p>
-        </div>
+      <div className={`min-h-screen ${BACKGROUND_GRADIENTS.results} flex items-center justify-center`}>
+        <LoadingSpinner message="結果を計算しています..." />
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className={`min-h-screen ${BACKGROUND_GRADIENTS.results}`}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-6">
@@ -100,7 +109,7 @@ export default function ResultsPage() {
             transition={{ duration: 0.5 }}
             className="bg-white rounded-2xl shadow-xl overflow-hidden"
           >
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 text-center">
+            <div className={`${COLORS.primary} text-white p-8 text-center`}>
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -131,18 +140,11 @@ export default function ResultsPage() {
                       const maxScore = Math.max(...Object.values(result.scores!))
                       const percentage = (score / maxScore) * 100
                       
-                      const typeLabels: Record<string, string> = {
-                        creative: 'クリエイティブ',
-                        analytical: '分析・戦略',
-                        technical: '技術・専門',
-                        social: '対人サポート',
-                        leadership: 'リーダーシップ'
-                      }
 
                       return (
                         <div key={key} className="flex items-center gap-4">
                           <div className="w-24 text-sm font-medium text-gray-700">
-                            {typeLabels[key] || key}
+                            {JOB_TYPE_LABELS[key] || key}
                           </div>
                           <div className="flex-1 bg-gray-200 rounded-full h-3">
                             <motion.div
@@ -185,7 +187,7 @@ export default function ResultsPage() {
                 <ShareButton result={result} />
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+                  className={`flex items-center gap-2 px-6 py-3 ${COLORS.button.secondary} text-white font-medium rounded-lg transition-colors`}
                 >
                   <RefreshCw className="w-4 h-4" />
                   もう一度診断

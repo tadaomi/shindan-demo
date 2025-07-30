@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useUserStore } from '@/lib/store/userStore'
 import GachaWheel from '@/components/gacha/GachaWheel'
+import PageLayout from '@/components/common/PageLayout'
+import { COLORS } from '@/lib/constants'
 import { ArrowLeft, Star, Gift, Coins } from 'lucide-react'
 import rewardsData from '@/data/rewards.json'
 

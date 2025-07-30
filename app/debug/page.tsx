@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUserStore } from '@/lib/store/userStore'
 import { useDiagnosisStore } from '@/lib/store/diagnosisStore'
-import { ArrowLeft, Trash2, RefreshCw, Download, AlertTriangle } from 'lucide-react'
+import { downloadJSON } from '@/lib/utils'
+import PageLayout from '@/components/common/PageLayout'
+import { COLORS } from '@/lib/constants'
+import { Trash2, RefreshCw, Download, AlertTriangle } from 'lucide-react'
 
 export default function DebugPage() {
   const router = useRouter()
@@ -13,12 +16,12 @@ export default function DebugPage() {
   const [isClearing, setIsClearing] = useState(false)
   const [clearSuccess, setClearSuccess] = useState(false)
 
-  const handleClearAllData = async () => {
+  const handleClearAllData = useCallback(() => {
     if (confirm('全てのデータを削除しますか？この操作は取り消せません。')) {
       setIsClearing(true)
       try {
         // ストアのデータをクリア
-        await clearUserData()
+        clearUserData()
         resetDiagnosis()
         
         // ローカルストレージを完全にクリア
@@ -39,13 +42,13 @@ export default function DebugPage() {
         setIsClearing(false)
       }
     }
-  }
+  }, [clearUserData, resetDiagnosis, loadUserData])
 
-  const handleReloadData = async () => {
-    await loadUserData()
-  }
+  const handleReloadData = useCallback(() => {
+    loadUserData()
+  }, [loadUserData])
 
-  const exportLocalStorageData = () => {
+  const exportLocalStorageData = useCallback(() => {
     if (typeof window === 'undefined') return
     
     const allData: Record<string, any> = {}
@@ -60,30 +63,12 @@ export default function DebugPage() {
       }
     }
     
-    const dataStr = JSON.stringify(allData, null, 2)
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
-    
-    const exportFileDefaultName = `debug-localStorage-${new Date().toISOString().split('T')[0]}.json`
-    
-    const linkElement = document.createElement('a')
-    linkElement.setAttribute('href', dataUri)
-    linkElement.setAttribute('download', exportFileDefaultName)
-    linkElement.click()
-  }
+    const filename = `debug-localStorage-${new Date().toISOString().split('T')[0]}.json`
+    downloadJSON(allData, filename)
+  }, [])
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <button
-              onClick={() => router.push('/')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              ホームに戻る
-            </button>
-          </div>
+    <PageLayout backgroundType="debug">
 
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <div className="flex items-center gap-3 mb-4">
@@ -121,7 +106,7 @@ export default function DebugPage() {
                 <div className="space-y-3">
                   <button
                     onClick={handleReloadData}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.primary} text-white rounded-lg transition-colors`}
                   >
                     <RefreshCw className="w-4 h-4" />
                     データを再読み込み
@@ -129,7 +114,7 @@ export default function DebugPage() {
                   
                   <button
                     onClick={exportLocalStorageData}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                    className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.success} text-white rounded-lg transition-colors`}
                   >
                     <Download className="w-4 h-4" />
                     LocalStorageデータをエクスポート
@@ -138,7 +123,7 @@ export default function DebugPage() {
                   <button
                     onClick={handleClearAllData}
                     disabled={isClearing}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                    className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.danger} text-white rounded-lg transition-colors disabled:opacity-50`}
                   >
                     <Trash2 className="w-4 h-4" />
                     {isClearing ? 'クリア中...' : '全データをクリア'}
@@ -188,8 +173,6 @@ export default function DebugPage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
+    </PageLayout>
   )
 }

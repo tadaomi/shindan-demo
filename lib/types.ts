@@ -61,12 +61,4 @@ export interface Question {
   max?: number
 }
 
-export interface DiagnosisConfig {
-  id: DiagnosisType
-  title: string
-  description: string
-  questions: Question[]
-  resultCalculator: (answers: Answer[]) => DiagnosisResult
-  estimatedTime: number
-  imageUrl?: string
-}
+// DiagnosisConfig interface removed - not used in current implementation

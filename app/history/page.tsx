@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useUserStore } from '@/lib/store/userStore'
 import { Diagnosis } from '@/lib/types'
 import DeleteConfirmModal from '@/components/ui/DeleteConfirmModal'
+import { downloadJSON, formatDateJP } from '@/lib/utils'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { JOB_TYPE_LABELS, BACKGROUND_GRADIENTS, COLORS } from '@/lib/constants'
 import { ArrowLeft, Calendar, FileText, Download, Trash2, Search, BarChart3, X } from 'lucide-react'
 
 export default function HistoryPage() {
@@ -13,9 +16,28 @@ export default function HistoryPage() {
   const { userData, loadUserData, removeDiagnosis, removeMultipleDiagnoses } = useUserStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'type'>('date')
-  const [filteredDiagnoses, setFilteredDiagnoses] = useState<Diagnosis[]>([])
   const [selectedDiagnoses, setSelectedDiagnoses] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState(false)
+  
+  // フィルタリングとソートを最適化
+  const filteredDiagnoses = useMemo(() => {
+    if (!userData?.completedDiagnoses) return []
+    
+    let filtered = userData.completedDiagnoses.filter(diagnosis =>
+      diagnosis.result.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      diagnosis.result.type.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    // ソート
+    return filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      } else {
+        return a.result.title.localeCompare(b.result.title)
+      }
+    })
+  }, [userData?.completedDiagnoses, searchTerm, sortBy])
+  
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean
     type: 'single' | 'multiple'
@@ -33,51 +55,15 @@ export default function HistoryPage() {
     loadUserData()
   }, [loadUserData])
 
-  useEffect(() => {
-    if (userData?.completedDiagnoses) {
-      let filtered = userData.completedDiagnoses.filter(diagnosis =>
-        diagnosis.result.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        diagnosis.result.type.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-
-      // ソート
-      filtered = filtered.sort((a, b) => {
-        if (sortBy === 'date') {
-          return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
-        } else {
-          return a.result.title.localeCompare(b.result.title)
-        }
-      })
-
-      setFilteredDiagnoses(filtered)
-    }
-  }, [userData, searchTerm, sortBy])
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const handleExportData = () => {
+  // 最適化されたコールバック関数
+  const handleExportData = useCallback(() => {
     if (userData) {
-      const dataStr = JSON.stringify(userData, null, 2)
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
-      
-      const exportFileDefaultName = `shindan-data-${new Date().toISOString().split('T')[0]}.json`
-      
-      const linkElement = document.createElement('a')
-      linkElement.setAttribute('href', dataUri)
-      linkElement.setAttribute('download', exportFileDefaultName)
-      linkElement.click()
+      const filename = `shindan-data-${new Date().toISOString().split('T')[0]}.json`
+      downloadJSON(userData, filename)
     }
-  }
+  }, [userData])
 
-  const handleDeleteSingle = (diagnosis: Diagnosis) => {
+  const handleDeleteSingle = useCallback((diagnosis: Diagnosis) => {
     setDeleteModal({
       isOpen: true,
       type: 'single',
@@ -85,9 +71,9 @@ export default function HistoryPage() {
       title: '診断結果を削除',
       message: `「${diagnosis.result.title}」の診断結果を削除してもよろしいですか？この操作は取り消すことができません。`
     })
-  }
+  }, [])
 
-  const handleDeleteMultiple = () => {
+  const handleDeleteMultiple = useCallback(() => {
     if (selectedDiagnoses.length > 0) {
       setDeleteModal({
         isOpen: true,
@@ -96,17 +82,17 @@ export default function HistoryPage() {
         message: `選択した${selectedDiagnoses.length}件の診断結果を削除してもよろしいですか？この操作は取り消すことができません。`
       })
     }
-  }
+  }, [selectedDiagnoses.length])
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(() => {
     if (deleteModal.type === 'single' && deleteModal.diagnosisId) {
-      await removeDiagnosis(deleteModal.diagnosisId)
+      removeDiagnosis(deleteModal.diagnosisId)
     } else if (deleteModal.type === 'multiple') {
-      await removeMultipleDiagnoses(selectedDiagnoses)
+      removeMultipleDiagnoses(selectedDiagnoses)
       setSelectedDiagnoses([])
       setSelectionMode(false)
     }
-  }
+  }, [deleteModal, selectedDiagnoses, removeDiagnosis, removeMultipleDiagnoses])
 
   const toggleSelection = (diagnosisId: string) => {
     setSelectedDiagnoses(prev => 
@@ -144,17 +130,14 @@ export default function HistoryPage() {
 
   if (!userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">データを読み込んでいます...</p>
-        </div>
+      <div className={`min-h-screen ${BACKGROUND_GRADIENTS.primary} flex items-center justify-center`}>
+        <LoadingSpinner message="データを読み込んでいます..." />
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className={`min-h-screen ${BACKGROUND_GRADIENTS.primary}`}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
@@ -184,7 +167,7 @@ export default function HistoryPage() {
                   {userData.completedDiagnoses.length >= 2 && (
                     <button
                       onClick={() => router.push('/compare')}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                      className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.primary} text-white rounded-lg transition-colors text-sm`}
                     >
                       <BarChart3 className="w-4 h-4" />
                       結果を比較
@@ -193,7 +176,7 @@ export default function HistoryPage() {
                   {userData.completedDiagnoses.length > 0 && (
                     <button
                       onClick={toggleSelectionMode}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm"
+                      className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.danger} text-white rounded-lg transition-colors text-sm`}
                     >
                       <Trash2 className="w-4 h-4" />
                       削除
@@ -201,7 +184,7 @@ export default function HistoryPage() {
                   )}
                   <button
                     onClick={handleExportData}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                    className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.success} text-white rounded-lg transition-colors text-sm`}
                   >
                     <Download className="w-4 h-4" />
                     データ出力
@@ -226,14 +209,14 @@ export default function HistoryPage() {
                   <button
                     onClick={handleDeleteMultiple}
                     disabled={selectedDiagnoses.length === 0}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
+                    className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.danger} text-white rounded-lg transition-colors text-sm disabled:opacity-50`}
                   >
                     <Trash2 className="w-4 h-4" />
                     削除 ({selectedDiagnoses.length})
                   </button>
                   <button
                     onClick={toggleSelectionMode}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                    className={`flex items-center gap-2 px-4 py-2 ${COLORS.button.secondary} text-white rounded-lg transition-colors text-sm`}
                   >
                     <X className="w-4 h-4" />
                     キャンセル
@@ -280,7 +263,7 @@ export default function HistoryPage() {
               {!searchTerm && (
                 <button
                   onClick={() => router.push('/diagnosis/job-aptitude')}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className={`px-6 py-3 ${COLORS.button.primary} text-white rounded-lg transition-colors`}
                 >
                   診断を始める
                 </button>
@@ -339,7 +322,7 @@ export default function HistoryPage() {
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            <span>{formatDate(diagnosis.completedAt)}</span>
+                            <span>{formatDateJP(diagnosis.completedAt)}</span>
                           </div>
                           <span>質問数: {diagnosis.answers.length}問</span>
                         </div>
@@ -370,18 +353,11 @@ export default function HistoryPage() {
                             const maxScore = Math.max(...Object.values(diagnosis.result.scores!))
                             const percentage = (score / maxScore) * 100
                             
-                            const typeLabels: Record<string, string> = {
-                              creative: 'クリエイティブ',
-                              analytical: '分析・戦略',
-                              technical: '技術・専門',
-                              social: '対人サポート',
-                              leadership: 'リーダーシップ'
-                            }
 
                             return (
                               <div key={key} className="text-center">
                                 <div className="text-xs text-gray-600 mb-1">
-                                  {typeLabels[key] || key}
+                                  {JOB_TYPE_LABELS[key] || key}
                                 </div>
                                 <div className="bg-gray-200 rounded-full h-2">
                                   <div
