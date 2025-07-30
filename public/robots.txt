@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# デモアプリのため、全てのページをクロール許可
+Disallow: /debug
+
+# サイトマップ（将来的に追加する場合）
+# Sitemap: https://your-domain.vercel.app/sitemap.xml

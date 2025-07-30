@@ -1,0 +1,102 @@
+{
+  "job-aptitude": [
+    {
+      "id": "q1",
+      "type": "single",
+      "text": "仕事をする上で最も重要だと思うものは？",
+      "options": [
+        { "value": "growth", "label": "自己成長・スキルアップ" },
+        { "value": "stability", "label": "安定性・福利厚生" },
+        { "value": "impact", "label": "社会貢献・やりがい" },
+        { "value": "creativity", "label": "創造性・自由度" }
+      ]
+    },
+    {
+      "id": "q2",
+      "type": "single",
+      "text": "理想的な職場環境は？",
+      "options": [
+        { "value": "collaborative", "label": "チームワーク重視" },
+        { "value": "independent", "label": "個人の裁量が大きい" },
+        { "value": "structured", "label": "ルールが明確" },
+        { "value": "flexible", "label": "柔軟で変化に富む" }
+      ]
+    },
+    {
+      "id": "q3",
+      "type": "scale",
+      "text": "新しい技術やトレンドへの興味度は？",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "q4",
+      "type": "single",
+      "text": "問題に直面した時のアプローチは？",
+      "options": [
+        { "value": "analytical", "label": "データを分析して論理的に解決" },
+        { "value": "creative", "label": "新しいアイデアで創造的に解決" },
+        { "value": "collaborative", "label": "チームで協力して解決" },
+        { "value": "practical", "label": "過去の経験を活かして実践的に解決" }
+      ]
+    },
+    {
+      "id": "q5",
+      "type": "single",
+      "text": "得意な作業スタイルは？",
+      "options": [
+        { "value": "detail", "label": "細部にこだわる丁寧な作業" },
+        { "value": "speed", "label": "スピード重視の効率的な作業" },
+        { "value": "strategic", "label": "全体を見渡す戦略的な作業" },
+        { "value": "innovative", "label": "新しい方法を試す革新的な作業" }
+      ]
+    },
+    {
+      "id": "q6",
+      "type": "scale",
+      "text": "人と接することへの好感度は？",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "q7",
+      "type": "single",
+      "text": "キャリアの方向性として魅力的なのは？",
+      "options": [
+        { "value": "specialist", "label": "特定分野のスペシャリスト" },
+        { "value": "manager", "label": "マネジメント・リーダーシップ" },
+        { "value": "entrepreneur", "label": "起業・独立" },
+        { "value": "generalist", "label": "幅広い分野で活躍" }
+      ]
+    },
+    {
+      "id": "q8",
+      "type": "single",
+      "text": "働く時間についての理想は？",
+      "options": [
+        { "value": "fixed", "label": "規則正しい勤務時間" },
+        { "value": "flexible", "label": "フレックスタイム" },
+        { "value": "remote", "label": "リモートワーク中心" },
+        { "value": "project", "label": "プロジェクトベースで柔軟に" }
+      ]
+    },
+    {
+      "id": "q9",
+      "type": "scale",
+      "text": "リスクを取ることへの許容度は？",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "q10",
+      "type": "single",
+      "text": "仕事で最もやりがいを感じる瞬間は？",
+      "options": [
+        { "value": "achievement", "label": "目標を達成したとき" },
+        { "value": "recognition", "label": "成果が認められたとき" },
+        { "value": "helping", "label": "誰かの役に立ったとき" },
+        { "value": "learning", "label": "新しいことを学んだとき" }
+      ]
+    }
+  ]
+}

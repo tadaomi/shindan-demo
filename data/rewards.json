@@ -1,0 +1,84 @@
+{
+  "rewards": [
+    {
+      "id": "tip_001",
+      "type": "information",
+      "title": "面接のコツ",
+      "description": "面接では相手の目を見て話すことで、自信と誠実さをアピールできます。",
+      "rarity": "common",
+      "points": 5
+    },
+    {
+      "id": "tip_002",
+      "type": "information",
+      "title": "職務経歴書の書き方",
+      "description": "具体的な数字や成果を入れることで、説得力のある職務経歴書が作成できます。",
+      "rarity": "common",
+      "points": 5
+    },
+    {
+      "id": "tip_003",
+      "type": "information",
+      "title": "転職活動のタイミング",
+      "description": "求人が多くなる1-3月、9-11月は転職活動に最適な時期です。",
+      "rarity": "common",
+      "points": 5
+    },
+    {
+      "id": "industry_001",
+      "type": "information",
+      "title": "IT業界の将来性",
+      "description": "AI・DX領域の需要拡大により、ITエンジニアの需要は今後も高まり続けます。",
+      "rarity": "uncommon",
+      "points": 10
+    },
+    {
+      "id": "industry_002",
+      "type": "information",
+      "title": "ヘルスケア業界のトレンド",
+      "description": "高齢化社会の進展により、ヘルスケア業界は安定した成長が期待される分野です。",
+      "rarity": "uncommon",
+      "points": 10
+    },
+    {
+      "id": "skill_001",
+      "type": "information",
+      "title": "プログラミングスキル習得法",
+      "description": "毎日30分でも継続することで、3ヶ月後には基礎的なプログラミングスキルが身につきます。",
+      "rarity": "uncommon",
+      "points": 10
+    },
+    {
+      "id": "secret_001",
+      "type": "special",
+      "title": "人事担当者の本音",
+      "description": "実は人事担当者が最も重視するのは、スキルよりも「一緒に働きたいか」という人柄です。",
+      "rarity": "rare",
+      "points": 20
+    },
+    {
+      "id": "secret_002",
+      "type": "special",
+      "title": "給与交渉の秘訣",
+      "description": "給与交渉は内定後すぐではなく、相手が本当に欲しがっているタイミングで行うのがベストです。",
+      "rarity": "rare",
+      "points": 20
+    },
+    {
+      "id": "bonus_001",
+      "type": "novelty",
+      "title": "ボーナスポイント",
+      "description": "診断を頑張ったあなたに特別ボーナス！50ポイントをプレゼント🎉",
+      "rarity": "rare",
+      "points": 50
+    },
+    {
+      "id": "legendary_001",
+      "type": "special",
+      "title": "転職成功の黄金律",
+      "description": "成功する転職の秘訣：自分の価値を正しく理解し、それを相手に伝える能力を磨くことです。",
+      "rarity": "legendary",
+      "points": 100
+    }
+  ]
+}

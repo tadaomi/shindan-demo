@@ -1,0 +1,19 @@
+{
+  "name": "採用診断アプリ",
+  "short_name": "診断アプリ",
+  "description": "求職者の性格や価値観を診断し、最適な職種を提案する採用支援ツール",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["business", "productivity", "education"],
+  "lang": "ja"
+}
